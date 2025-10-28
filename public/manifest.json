@@ -1,0 +1,24 @@
+{
+  "name": "WebRTC Video Chat",
+  "short_name": "Video Chat",
+  "description": "무료 1:1 화상 채팅 서비스. 실시간 비디오 통화 및 채팅",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#4a9eff",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📹</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["communication", "social", "utilities"],
+  "lang": "ko-KR",
+  "dir": "ltr",
+  "scope": "/",
+  "screenshots": []
+}
+

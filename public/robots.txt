@@ -1,0 +1,15 @@
+# robots.txt for WebRTC Video Chat
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://yourwebsite.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 0
+
+# Disallow admin or private paths if any
+# Disallow: /admin/
+# Disallow: /private/
+

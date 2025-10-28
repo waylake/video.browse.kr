@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <!-- SEO 최적화 -->
+  <title>무료 WebRTC 화상 채팅 - 실시간 1:1 비디오 통화</title>
+  <meta name="description" content="무료 1:1 화상 채팅 서비스. 설치 없이 브라우저에서 바로 사용하는 실시간 비디오 통화. WebRTC 기반 안전한 P2P 연결.">
+  <meta name="keywords" content="화상채팅, 비디오채팅, WebRTC, 화상통화, 무료채팅, 실시간채팅, 1대1채팅">
+  <meta name="author" content="WebRTC Video Chat">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://yourwebsite.com/">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yourwebsite.com/">
+  <meta property="og:title" content="무료 WebRTC 화상 채팅 - 실시간 1:1 비디오 통화">
+  <meta property="og:description" content="설치 없이 브라우저에서 바로 사용하는 무료 1:1 화상 채팅 서비스">
+  <meta property="og:image" content="https://yourwebsite.com/og-image.jpg">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://yourwebsite.com/">
+  <meta property="twitter:title" content="무료 WebRTC 화상 채팅">
+  <meta property="twitter:description" content="설치 없이 브라우저에서 바로 사용하는 무료 1:1 화상 채팅 서비스">
+  <meta property="twitter:image" content="https://yourwebsite.com/og-image.jpg">
+  
+  <!-- PWA -->
+  <meta name="theme-color" content="#4a9eff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%234a9eff' d='M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z'/%3E%3C/svg%3E">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- 구조화된 데이터 (Schema.org) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "WebRTC Video Chat",
+    "description": "무료 1:1 화상 채팅 서비스",
+    "url": "https://yourwebsite.com/",
+    "applicationCategory": "CommunicationApplication",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "KRW"
+    },
+    "featureList": "실시간 비디오 통화, 텍스트 채팅, P2P 연결"
+  }
+  </script>
+  
+  <style>
+    :root {
+      /* 다크 테마 (기본) */
+      --bg-primary: #0f0f0f;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #2a2a2a;
+      --bg-quaternary: #3a3a3a;
+      --text-primary: #ffffff;
+      --text-secondary: #888888;
+      --accent-primary: #4a9eff;
+      --accent-hover: #3a8eef;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #10b981;
+      --border: #2a2a2a;
+      --shadow: rgba(0, 0, 0, 0.3);
+      --backdrop: rgba(0, 0, 0, 0.9);
+      --video-bg: #000000;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f5f5f5;
+      --bg-tertiary: #e5e5e5;
+      --bg-quaternary: #d4d4d4;
+      --text-primary: #0f0f0f;
+      --text-secondary: #666666;
+      --accent-primary: #2563eb;
+      --accent-hover: #1d4ed8;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --success: #059669;
+      --border: #e5e5e5;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --backdrop: rgba(0, 0, 0, 0.5);
+      --video-bg: #000000;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: var(--bg-secondary);
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .theme-toggle {
+      background: var(--bg-tertiary);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-quaternary);
+      transform: scale(1.05);
+    }
+
+    .theme-toggle svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .room-info {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .room-id {
+      color: var(--accent-primary);
+      font-weight: 500;
+      background: var(--bg-tertiary);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    .status-indicator.disconnected {
+      background: var(--danger);
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Main Content */
+    .main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Video Section */
+    .video-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      gap: 20px;
+      min-width: 0;
+    }
+
+    .video-grid {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-height: 0;
+      min-width: 0;
+    }
+
+    .video-grid.horizontal {
+      flex-direction: row;
+    }
+
+    .video-container {
+      position: relative;
+      flex: 1;
+      background: var(--video-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px var(--shadow);
+      min-height: 0;
+      min-width: 0;
+    }
+
+    .no-video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    video.cover {
+      object-fit: cover;
+    }
+
+    .video-label {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: white;
+    }
+
+    .no-video {
+      color: var(--text-secondary);
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .no-video svg {
+      width: 48px;
+      height: 48px;
+      opacity: 0.5;
+      animation: spin 2s linear infinite;
+    }
+
+    /* Layout Controls */
+    .layout-controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 0;
+      flex-shrink: 0;
+    }
+
+    .layout-btn {
+      background: var(--bg-tertiary);
+      border: 2px solid var(--border);
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+      padding: 0;
+      flex-shrink: 0;
+    }
+
+    .layout-btn:hover {
+      border-color: var(--accent-primary);
+      background: var(--bg-quaternary);
+      transform: none;
+      box-shadow: none;
+    }
+
+    .layout-btn.active {
+      border-color: var(--accent-primary);
+      background: var(--accent-primary);
+      color: white;
+    }
+
+    .layout-btn:active {
+      transform: none;
+    }
+
+    .layout-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      padding: 0;
+      padding-top: 16px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    button {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+
+    button svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    button:hover {
+      background: var(--bg-quaternary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px var(--shadow);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button.primary {
+      background: var(--accent-primary);
+      color: white;
+    }
+
+    button.primary:hover {
+      background: var(--accent-hover);
+    }
+
+    button.danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    button.danger:hover {
+      background: var(--danger-hover);
+    }
+
+    button.muted {
+      background: var(--danger);
+      color: white;
+    }
+
+    /* Chat Section */
+    .chat-section {
+      width: 360px;
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .chat-section.hidden {
+      transform: translateX(100%);
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+    }
+
+    .chat-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chat-toggle-btn {
+      background: transparent;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      padding: 0;
+      color: var(--text-primary);
+    }
+
+    .chat-toggle-btn:hover {
+      background: var(--bg-tertiary);
+      transform: none;
+      box-shadow: none;
+    }
+
+    .chat-toggle-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* 채팅 토글 플로팅 버튼 (채팅이 숨겨졌을 때) */
+    .chat-toggle-floating {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px var(--shadow);
+      z-index: 100;
+      transition: all 0.2s;
+    }
+
+    .chat-toggle-floating:hover {
+      background: var(--accent-hover);
+      transform: scale(1.1);
+    }
+
+    .chat-toggle-floating svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .chat-toggle-floating.show {
+      display: flex;
+    }
+
+    /* 읽지 않은 메시지 배지 */
+    .unread-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--danger);
+      color: white;
+      border-radius: 12px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      font-size: 11px;
+      font-weight: 600;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--bg-primary);
+    }
+
+    .unread-badge.show {
+      display: flex;
+    }
+
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .messages-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .messages-container::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    .messages-container::-webkit-scrollbar-thumb {
+      background: var(--bg-quaternary);
+      border-radius: 4px;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      max-width: 80%;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.sent {
+      align-self: flex-end;
+    }
+
+    .message.received {
+      align-self: flex-start;
+    }
+
+    .message-content {
+      padding: 10px 14px;
+      border-radius: 12px;
+      word-wrap: break-word;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .message.sent .message-content {
+      background: var(--accent-primary);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.received .message-content {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      padding: 0 4px;
+    }
+
+    .chat-input-container {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 0; /* flexbox 오버플로우 방지 */
+    }
+
+    .chat-input:focus {
+      border-color: var(--accent-primary);
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .chat-input-container button {
+      flex-shrink: 0; /* 버튼이 줄어들지 않도록 */
+    }
+
+    /* Setup Modal */
+    .setup-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--backdrop);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .setup-modal.hidden {
+      display: none;
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      padding: 32px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px var(--shadow);
+      animation: slideUp 0.4s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--accent-primary), #667eea);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .modal-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-buttons button {
+      width: 100%;
+      padding: 14px;
+      justify-content: center;
+    }
+
+    .input-group {
+      margin-top: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .input-group input {
+      width: 100%;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .input-group input::placeholder {
+      color: var(--text-secondary);
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .input-group input:focus {
+      border-color: var(--accent-primary);
+    }
+
+    .back-btn {
+      margin-top: 12px;
+      background: transparent !important;
+      text-decoration: underline;
+      box-shadow: none !important;
+    }
+
+    .back-btn:hover {
+      background: transparent !important;
+      transform: none !important;
+    }
+
+    /* 반응형 디자인 */
+    @media (max-width: 1024px) {
+      .chat-section {
+        width: 300px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        flex-direction: column;
+      }
+
+      .chat-section {
+        width: 100%;
+        max-height: 50vh;
+        border-left: none;
+        border-top: 1px solid var(--border);
+        flex-shrink: 0;
+        transition: transform 0.3s ease, max-height 0.3s ease;
+      }
+
+      .chat-section.hidden {
+        transform: translateY(100%);
+        max-height: 0;
+        overflow: hidden;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+
+      .video-section {
+        padding: 12px;
+        gap: 12px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .video-grid {
+        gap: 12px;
+      }
+
+      .video-grid.horizontal {
+        flex-direction: column;
+      }
+
+      .controls {
+        padding-top: 12px;
+      }
+
+      button {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+
+      .header {
+        padding: 12px 16px;
+      }
+
+      .logo {
+        font-size: 18px;
+      }
+
+      .chat-input-container {
+        padding: 12px 16px;
+        background: var(--bg-secondary);
+        position: sticky;
+        bottom: 0;
+      }
+
+      .chat-input {
+        font-size: 16px; /* iOS 줌 방지 */
+        padding: 12px 14px;
+        min-height: 44px; /* 터치 최소 크기 */
+      }
+
+      .chat-input-container button {
+        padding: 12px 16px;
+        min-width: 60px;
+        flex-shrink: 0;
+      }
+
+      .messages-container {
+        padding: 16px;
+        /* 키보드가 올라왔을 때를 대비한 최소 높이 */
+        min-height: 150px;
+        max-height: calc(50vh - 120px);
+      }
+
+      .chat-toggle-floating {
+        bottom: 80px; /* 모바일 컨트롤 버튼 위로 */
+      }
+    }
+
+    @media (max-width: 480px) {
+      .modal-content {
+        padding: 24px;
+      }
+
+      .modal-title {
+        font-size: 24px;
+      }
+
+      .room-id {
+        font-size: 11px;
+        padding: 3px 8px;
+      }
+
+      .controls button {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .controls button span {
+        display: none;
+      }
+
+      .chat-section {
+        max-height: 45vh;
+      }
+
+      .chat-input-container {
+        padding: 10px 12px;
+        gap: 8px;
+      }
+
+      .chat-input {
+        font-size: 16px;
+        padding: 10px 12px;
+      }
+
+      .chat-input-container button span {
+        display: none; /* 작은 화면에서는 아이콘만 표시 */
+      }
+
+      .chat-input-container button {
+        padding: 10px 14px;
+        min-width: 48px;
+      }
+
+      .messages-container {
+        padding: 12px;
+        max-height: calc(45vh - 110px);
+      }
+
+      .message-content {
+        font-size: 13px;
+        padding: 8px 12px;
+      }
+    }
+
+    /* 키보드가 올라왔을 때 추가 조정 */
+    @supports (-webkit-touch-callout: none) {
+      /* iOS Safari */
+      @media (max-width: 768px) {
+        .chat-section {
+          /* iOS에서 키보드가 올라오면 자동으로 화면 조정 */
+          max-height: 60vh;
+        }
+      }
+    }
+
+    /* 로딩 애니메이션 */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* 접근성 */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    /* 인쇄 스타일 */
+    @media print {
+      .setup-modal,
+      .controls,
+      .chat-section {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 메인 앱 -->
+  <div class="setup-modal" id="setupModal">
+    <div class="modal-content" role="dialog" aria-labelledby="modalTitle" aria-describedby="modalSubtitle">
+      <h1 class="modal-title" id="modalTitle">Video Chat</h1>
+      <p class="modal-subtitle" id="modalSubtitle">무료 1:1 화상 채팅을 시작하세요</p>
+      
+      <div id="initialButtons" class="modal-buttons">
+        <button class="primary" onclick="createRoom()" aria-label="새 방 만들기">
+          <i class="fa-solid fa-house"></i>
+          <span>새 방 만들기</span>
+        </button>
+        <button onclick="joinRandomRoom()" aria-label="랜덤 방 참가하기">
+          <i class="fa-solid fa-shuffle"></i>
+          <span>랜덤 방 참가하기</span>
+        </button>
+        <button onclick="showJoinInput()" aria-label="방 코드로 참가하기">
+          <i class="fa-solid fa-key"></i>
+          <span>방 코드로 참가하기</span>
+        </button>
+      </div>
+      
+      <div id="joinInput" class="modal-buttons" style="display: none;">
+        <div class="input-group">
+          <label for="roomIdInput">방 코드</label>
+          <input 
+            type="text" 
+            id="roomIdInput" 
+            placeholder="7자리 코드 입력" 
+            maxlength="7"
+            aria-label="방 코드 입력"
+            autocomplete="off">
+        </div>
+        <button class="primary" onclick="joinRoom()" aria-label="방 참가">
+          <i class="fa-solid fa-check"></i>
+          <span>참가하기</span>
+        </button>
+        <button class="back-btn" onclick="showInitialButtons()" aria-label="뒤로 가기">
+          뒤로
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <header class="header" role="banner">
+      <div class="header-left">
+        <h1 class="logo">
+          <i class="fa-solid fa-video"></i>
+          Video Chat
+        </h1>
+        <button 
+          class="theme-toggle" 
+          onclick="toggleTheme()" 
+          aria-label="테마 전환"
+          title="테마 전환 (Ctrl+T)">
+          <i id="themeIcon" class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+      <div class="room-info" role="status" aria-live="polite">
+        <span class="status-indicator" id="statusIndicator"></span>
+        <span id="connectionStatus">연결 중...</span>
+        <span class="room-id" id="displayRoomId" aria-label="방 코드"></span>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="video-section" aria-label="비디오 영역">
+        <div class="video-grid" id="videoGrid">
+          <div class="video-container" aria-label="내 비디오">
+            <video id="localVideo" autoplay muted playsinline aria-label="내 카메라"></video>
+            <div class="video-label">나</div>
+          </div>
+          <div class="video-container" aria-label="상대방 비디오">
+            <video id="remoteVideo" autoplay playsinline aria-label="상대방 카메라"></video>
+            <div class="video-label">상대방</div>
+            <div class="no-video" id="waitingMessage">
+              <i class="fa-solid fa-clock" style="font-size: 48px; opacity: 0.5;"></i>
+              <span>상대방을 기다리는 중...</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="layout-controls" role="group" aria-label="레이아웃 설정">
+          <button 
+            class="layout-btn active" 
+            id="layoutVertical"
+            onclick="setLayout('vertical')" 
+            aria-label="세로 레이아웃"
+            title="세로 레이아웃">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="2" width="16" height="9" rx="1" />
+              <rect x="4" y="13" width="16" height="9" rx="1" />
+            </svg>
+          </button>
+          <button 
+            class="layout-btn" 
+            id="layoutHorizontal"
+            onclick="setLayout('horizontal')" 
+            aria-label="가로 레이아웃"
+            title="가로 레이아웃">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="4" width="9" height="16" rx="1" />
+              <rect x="13" y="4" width="9" height="16" rx="1" />
+            </svg>
+          </button>
+          <button 
+            class="layout-btn" 
+            id="layoutContain"
+            onclick="toggleVideoFit()" 
+            aria-label="비디오 크기 조절"
+            title="레터박스 / 꽉 채우기 (Ctrl+F)">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+              <rect x="7" y="9" width="10" height="6" rx="1" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="controls" role="group" aria-label="통화 제어">
+          <button 
+            id="toggleVideo" 
+            onclick="toggleVideo()" 
+            aria-label="비디오 토글"
+            title="비디오 토글 (Ctrl+V)">
+            <i id="videoIcon" class="fa-solid fa-video"></i>
+            <span id="videoText">비디오 끄기</span>
+          </button>
+          <button 
+            id="toggleAudio" 
+            onclick="toggleAudio()" 
+            aria-label="오디오 토글"
+            title="오디오 토글 (Ctrl+M)">
+            <i id="audioIcon" class="fa-solid fa-microphone"></i>
+            <span id="audioText">음소거</span>
+          </button>
+          <button 
+            class="primary" 
+            onclick="switchToNext()" 
+            aria-label="다음 사람 찾기"
+            title="다음 사람 찾기 (Ctrl+N)">
+            <i class="fa-solid fa-shuffle"></i>
+            <span>다음</span>
+          </button>
+          <button 
+            class="danger" 
+            onclick="leaveRoom()" 
+            aria-label="방 나가기"
+            title="방 나가기 (Ctrl+Q)">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>나가기</span>
+          </button>
+        </div>
+      </section>
+
+      <aside class="chat-section" id="chatSection" aria-label="채팅 영역">
+        <div class="chat-header">
+          <div class="chat-header-left">
+            <i class="fa-solid fa-message" style="font-size: 18px;"></i>
+            채팅
+          </div>
+          <button 
+            class="chat-toggle-btn" 
+            onclick="toggleChat()" 
+            aria-label="채팅 닫기"
+            title="채팅 닫기 (Ctrl+C)">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div 
+          class="messages-container" 
+          id="messagesContainer" 
+          role="log" 
+          aria-live="polite"
+          aria-label="채팅 메시지"></div>
+        <div class="chat-input-container">
+          <input 
+            type="text" 
+            class="chat-input" 
+            id="chatInput" 
+            placeholder="메시지를 입력하세요..."
+            onkeypress="if(event.key==='Enter') sendMessage()"
+            aria-label="채팅 메시지 입력"
+            maxlength="500">
+          <button 
+            class="primary" 
+            onclick="sendMessage()" 
+            aria-label="메시지 전송"
+            title="메시지 전송 (Enter)">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>전송</span>
+          </button>
+        </div>
+      </aside>
+    </main>
+    
+    <!-- 채팅 토글 플로팅 버튼 -->
+    <button 
+      class="chat-toggle-floating" 
+      id="chatToggleFloating" 
+      onclick="toggleChat()" 
+      aria-label="채팅 열기"
+      title="채팅 열기 (Ctrl+C)">
+      <i class="fa-solid fa-message"></i>
+      <span class="unread-badge" id="unreadBadge">0</span>
+    </button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // ===== 초기화 =====
+    const socket = io();
+    let localStream;
+    let peerConnection;
+    let roomId;
+    let peerId;
+    let isHost = false;
+    let isVideoEnabled = true;
+    let isAudioEnabled = true;
+    let currentLayout = 'vertical';
+    let isVideoContain = true;
+    let isChatVisible = true;
+    let unreadMessages = 0;
+
+    const config = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
+      ]
+    };
+
+    // ===== 테마 관리 =====
+    function initTheme() {
+      const savedTheme = sessionStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const newTheme = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      sessionStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+    }
+
+    function updateThemeIcon(theme) {
+      const icon = document.getElementById('themeIcon');
+      if (theme === 'dark') {
+        // 라이트 모드 아이콘 (태양)
+        icon.className = 'fa-solid fa-sun';
+      } else {
+        // 다크 모드 아이콘 (달)
+        icon.className = 'fa-solid fa-moon';
+      }
+    }
+
+    // ===== 레이아웃 관리 =====
+    function setLayout(layout) {
+      currentLayout = layout;
+      const videoGrid = document.getElementById('videoGrid');
+      const verticalBtn = document.getElementById('layoutVertical');
+      const horizontalBtn = document.getElementById('layoutHorizontal');
+      
+      if (layout === 'horizontal') {
+        videoGrid.classList.add('horizontal');
+        verticalBtn.classList.remove('active');
+        horizontalBtn.classList.add('active');
+      } else {
+        videoGrid.classList.remove('horizontal');
+        verticalBtn.classList.add('active');
+        horizontalBtn.classList.remove('active');
+      }
+      
+      sessionStorage.setItem('videoLayout', layout);
+    }
+
+    function toggleVideoFit() {
+      isVideoContain = !isVideoContain;
+      const localVideo = document.getElementById('localVideo');
+      const remoteVideo = document.getElementById('remoteVideo');
+      const containBtn = document.getElementById('layoutContain');
+      
+      if (isVideoContain) {
+        localVideo.classList.remove('cover');
+        remoteVideo.classList.remove('cover');
+        containBtn.classList.remove('active');
+      } else {
+        localVideo.classList.add('cover');
+        remoteVideo.classList.add('cover');
+        containBtn.classList.add('active');
+      }
+      
+      sessionStorage.setItem('videoFit', isVideoContain ? 'contain' : 'cover');
+    }
+
+    function initLayout() {
+      const savedLayout = sessionStorage.getItem('videoLayout') || 'vertical';
+      const savedFit = sessionStorage.getItem('videoFit') || 'contain';
+      
+      if (savedLayout === 'horizontal') {
+        setLayout('horizontal');
+      }
+      
+      if (savedFit === 'cover') {
+        isVideoContain = true; // 반전시켜서 toggle 호출
+        toggleVideoFit();
+      }
+    }
+
+    // ===== 세션 관리 =====
+    function saveSession() {
+      if (roomId) {
+        sessionStorage.setItem('webrtc_session', JSON.stringify({
+          roomId: roomId,
+          isHost: isHost,
+          timestamp: Date.now()
+        }));
+      }
+    }
+
+    function restoreSession() {
+      const sessionData = sessionStorage.getItem('webrtc_session');
+      if (!sessionData) return false;
+
+      try {
+        const session = JSON.parse(sessionData);
+        const timeDiff = Date.now() - session.timestamp;
+        
+        // 5분 이내의 세션만 복원
+        if (timeDiff > 5 * 60 * 1000) {
+          sessionStorage.removeItem('webrtc_session');
+          return false;
+        }
+
+        socket.emit('rejoin-room', {
+          roomId: session.roomId,
+          wasHost: session.isHost
+        }, async (response) => {
+          if (response.error) {
+            console.log('세션 복원 실패:', response.error);
+            sessionStorage.removeItem('webrtc_session');
+            return;
+          }
+
+          roomId = response.roomId;
+          isHost = response.isHost;
+          
+          if (response.peerId) {
+            peerId = response.peerId;
+          }
+
+          document.getElementById('displayRoomId').textContent = roomId;
+          document.getElementById('setupModal').classList.add('hidden');
+          await initLocalStream();
+          
+          if (peerId) {
+            await createPeerConnection();
+            if (!isHost) {
+              await createOffer();
+            }
+          } else {
+            updateStatus('상대방을 기다리는 중...');
+          }
+        });
+
+        return true;
+      } catch (error) {
+        console.error('세션 복원 오류:', error);
+        sessionStorage.removeItem('webrtc_session');
+        return false;
+      }
+    }
+
+    // ===== 미디어 스트림 =====
+    async function initLocalStream() {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: { echoCancellation: true, noiseSuppression: true }
+        });
+        document.getElementById('localVideo').srcObject = localStream;
+      } catch (error) {
+        alert('카메라/마이크 접근 권한이 필요합니다.');
+        console.error('미디어 디바이스 접근 오류:', error);
+      }
+    }
+
+    // ===== 방 관리 =====
+    function createRoom() {
+      socket.emit('create-room', async (response) => {
+        roomId = response.roomId;
+        isHost = response.isHost;
+        document.getElementById('displayRoomId').textContent = roomId;
+        document.getElementById('setupModal').classList.add('hidden');
+        await initLocalStream();
+        updateStatus('상대방을 기다리는 중...');
+        saveSession();
+      });
+    }
+
+    function showJoinInput() {
+      document.getElementById('initialButtons').style.display = 'none';
+      document.getElementById('joinInput').style.display = 'flex';
+      setTimeout(() => document.getElementById('roomIdInput').focus(), 100);
+    }
+
+    function showInitialButtons() {
+      document.getElementById('initialButtons').style.display = 'flex';
+      document.getElementById('joinInput').style.display = 'none';
+    }
+
+    async function joinRoom() {
+      const inputRoomId = document.getElementById('roomIdInput').value.toUpperCase().trim();
+      if (!inputRoomId) {
+        alert('방 코드를 입력해주세요.');
+        return;
+      }
+
+      socket.emit('join-room', inputRoomId, async (response) => {
+        if (response.error) {
+          alert(response.error);
+          return;
+        }
+
+        roomId = inputRoomId;
+        peerId = response.peerId;
+        isHost = response.isHost;
+        document.getElementById('displayRoomId').textContent = roomId;
+        document.getElementById('setupModal').classList.add('hidden');
+        await initLocalStream();
+        await createPeerConnection();
+        await createOffer();
+        saveSession();
+      });
+    }
+
+    async function joinRandomRoom() {
+      socket.emit('join-random-room', async (response) => {
+        if (response.error) {
+          alert(response.error);
+          return;
+        }
+
+        roomId = response.roomId;
+        peerId = response.peerId;
+        isHost = response.isHost;
+        document.getElementById('displayRoomId').textContent = roomId;
+        document.getElementById('setupModal').classList.add('hidden');
+        await initLocalStream();
+        
+        if (response.created) {
+          updateStatus('상대방을 기다리는 중...');
+        } else {
+          await createPeerConnection();
+          await createOffer();
+        }
+        
+        saveSession();
+      });
+    }
+
+    // ===== WebRTC 연결 =====
+    async function createPeerConnection() {
+      peerConnection = new RTCPeerConnection(config);
+
+      localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+      });
+
+      peerConnection.ontrack = (event) => {
+        const remoteVideo = document.getElementById('remoteVideo');
+        remoteVideo.srcObject = event.streams[0];
+        document.getElementById('waitingMessage').style.display = 'none';
+      };
+
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('ice-candidate', {
+            to: peerId,
+            candidate: event.candidate
+          });
+        }
+      };
+
+      peerConnection.onconnectionstatechange = () => {
+        if (peerConnection.connectionState === 'connected') {
+          updateStatus('연결됨');
+        } else if (peerConnection.connectionState === 'disconnected') {
+          updateStatus('연결 끊김');
+        } else if (peerConnection.connectionState === 'failed') {
+          updateStatus('연결 실패');
+        }
+      };
+    }
+
+    async function createOffer() {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      socket.emit('offer', {
+        to: peerId,
+        offer: offer
+      });
+    }
+
+    // ===== Socket 이벤트 =====
+    socket.on('peer-joined', async (joinedPeerId) => {
+      peerId = joinedPeerId;
+      await createPeerConnection();
+      document.getElementById('waitingMessage').style.display = 'none';
+      updateStatus('연결 중...');
+    });
+
+    socket.on('peer-reconnected', async (reconnectedPeerId) => {
+      peerId = reconnectedPeerId;
+      if (peerConnection) {
+        peerConnection.close();
+      }
+      await createPeerConnection();
+      if (!isHost) {
+        await createOffer();
+      }
+      document.getElementById('waitingMessage').style.display = 'none';
+      updateStatus('재연결 중...');
+    });
+
+    socket.on('offer', async (data) => {
+      peerId = data.from;
+      await peerConnection.setRemoteDescription(data.offer);
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit('answer', {
+        to: peerId,
+        answer: answer
+      });
+    });
+
+    socket.on('answer', async (data) => {
+      await peerConnection.setRemoteDescription(data.answer);
+    });
+
+    socket.on('ice-candidate', async (data) => {
+      try {
+        await peerConnection.addIceCandidate(data.candidate);
+      } catch (error) {
+        console.error('ICE candidate 추가 오류:', error);
+      }
+    });
+
+    socket.on('chat-message', (data) => {
+      addMessage(data.message, 'received', data.timestamp);
+    });
+
+    socket.on('peer-disconnected', () => {
+      if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+      }
+      peerId = null;
+      const remoteVideo = document.getElementById('remoteVideo');
+      remoteVideo.srcObject = null;
+      document.getElementById('waitingMessage').style.display = 'flex';
+      updateStatus('상대방이 나갔습니다');
+    });
+
+    // ===== 미디어 컨트롤 =====
+    function toggleVideo() {
+      if (!localStream) return;
+      isVideoEnabled = !isVideoEnabled;
+      localStream.getVideoTracks()[0].enabled = isVideoEnabled;
+      
+      const btn = document.getElementById('toggleVideo');
+      const icon = document.getElementById('videoIcon');
+      const text = document.getElementById('videoText');
+      
+      if (isVideoEnabled) {
+        icon.className = 'fa-solid fa-video';
+        text.textContent = '비디오 끄기';
+        btn.classList.remove('muted');
+      } else {
+        icon.className = 'fa-solid fa-video-slash';
+        text.textContent = '비디오 켜기';
+        btn.classList.add('muted');
+      }
+    }
+
+    function toggleAudio() {
+      if (!localStream) return;
+      isAudioEnabled = !isAudioEnabled;
+      localStream.getAudioTracks()[0].enabled = isAudioEnabled;
+      
+      const btn = document.getElementById('toggleAudio');
+      const icon = document.getElementById('audioIcon');
+      const text = document.getElementById('audioText');
+      
+      if (isAudioEnabled) {
+        icon.className = 'fa-solid fa-microphone';
+        text.textContent = '음소거';
+        btn.classList.remove('muted');
+      } else {
+        icon.className = 'fa-solid fa-microphone-slash';
+        text.textContent = '음소거 해제';
+        btn.classList.add('muted');
+      }
+    }
+
+    function leaveRoom() {
+      if (confirm('방을 나가시겠습니까?')) {
+        sessionStorage.removeItem('webrtc_session');
+        if (localStream) {
+          localStream.getTracks().forEach(track => track.stop());
+        }
+        if (peerConnection) {
+          peerConnection.close();
+        }
+        location.reload();
+      }
+    }
+
+    // ===== 다음 사람 찾기 =====
+    async function switchToNext() {
+      if (!confirm('다음 사람과 매칭하시겠습니까?')) {
+        return;
+      }
+
+      // 현재 연결 정리
+      if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+      }
+
+      // 원격 비디오 초기화
+      const remoteVideo = document.getElementById('remoteVideo');
+      remoteVideo.srcObject = null;
+      document.getElementById('waitingMessage').style.display = 'flex';
+
+      // 채팅 메시지 초기화
+      const messagesContainer = document.getElementById('messagesContainer');
+      messagesContainer.innerHTML = '';
+      
+      // 읽지 않은 메시지 카운터 리셋
+      unreadMessages = 0;
+      updateUnreadBadge();
+
+      // 상태 업데이트
+      updateStatus('새로운 사람을 찾는 중...');
+
+      // 피어 정보 초기화
+      peerId = null;
+
+      // 서버에 다음 사람 요청
+      socket.emit('switch-to-next', async (response) => {
+        if (response.error) {
+          alert(response.error);
+          updateStatus('매칭 실패');
+          return;
+        }
+
+        // 새 방 정보 업데이트
+        roomId = response.roomId;
+        isHost = response.isHost;
+        document.getElementById('displayRoomId').textContent = roomId;
+
+        if (response.created) {
+          // 새 방을 만들었으면 대기
+          updateStatus('상대방을 기다리는 중...');
+        } else {
+          // 기존 방에 참가했으면 연결 시작
+          peerId = response.peerId;
+          await createPeerConnection();
+          await createOffer();
+          updateStatus('연결 중...');
+        }
+
+        // 세션 저장
+        saveSession();
+      });
+    }
+
+    // ===== 채팅 =====
+    function toggleChat() {
+      isChatVisible = !isChatVisible;
+      const chatSection = document.getElementById('chatSection');
+      const floatingBtn = document.getElementById('chatToggleFloating');
+      
+      if (isChatVisible) {
+        chatSection.classList.remove('hidden');
+        floatingBtn.classList.remove('show');
+        // 읽지 않은 메시지 카운터 리셋
+        unreadMessages = 0;
+        updateUnreadBadge();
+      } else {
+        chatSection.classList.add('hidden');
+        floatingBtn.classList.add('show');
+      }
+      
+      // 설정 저장
+      sessionStorage.setItem('chatVisible', isChatVisible);
+    }
+
+    function updateUnreadBadge() {
+      const badge = document.getElementById('unreadBadge');
+      if (unreadMessages > 0) {
+        badge.textContent = unreadMessages > 99 ? '99+' : unreadMessages;
+        badge.classList.add('show');
+      } else {
+        badge.classList.remove('show');
+      }
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const message = input.value.trim();
+      if (!message || !peerId) return;
+
+      socket.emit('chat-message', {
+        to: peerId,
+        message: message
+      });
+
+      addMessage(message, 'sent', Date.now());
+      input.value = '';
+      
+      // 모바일에서 전송 후 포커스 유지 (선택적)
+      // input.focus();
+    }
+
+    function addMessage(text, type, timestamp) {
+      const container = document.getElementById('messagesContainer');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${type}`;
+
+      const time = new Date(timestamp).toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      messageDiv.innerHTML = `
+        <div class="message-content">${escapeHtml(text)}</div>
+        <div class="message-time">${time}</div>
+      `;
+
+      container.appendChild(messageDiv);
+      
+      // 받은 메시지이고 채팅이 숨겨져 있으면 카운터 증가
+      if (type === 'received' && !isChatVisible) {
+        unreadMessages++;
+        updateUnreadBadge();
+      }
+      
+      // 부드러운 스크롤
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // 모바일 키보드 처리
+    function setupMobileKeyboardHandling() {
+      const chatInput = document.getElementById('chatInput');
+      const messagesContainer = document.getElementById('messagesContainer');
+      
+      // 입력 필드 포커스 시 메시지 컨테이너 스크롤
+      chatInput.addEventListener('focus', () => {
+        setTimeout(() => {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          // 채팅 섹션을 뷰포트 안으로
+          if (window.innerWidth <= 768) {
+            chatInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }, 300); // 키보드 애니메이션 후
+      });
+
+      // 뷰포트 크기 변경 감지 (모바일 키보드)
+      let lastHeight = window.innerHeight;
+      window.addEventListener('resize', () => {
+        const currentHeight = window.innerHeight;
+        const heightDiff = lastHeight - currentHeight;
+        
+        // 키보드가 올라온 경우 (높이가 100px 이상 줄어듦)
+        if (heightDiff > 100) {
+          setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          }, 100);
+        }
+        
+        lastHeight = currentHeight;
+      });
+    }
+
+    // ===== 상태 관리 =====
+    function updateStatus(status) {
+      document.getElementById('connectionStatus').textContent = status;
+      const indicator = document.getElementById('statusIndicator');
+      if (status === '연결됨') {
+        indicator.classList.remove('disconnected');
+      } else {
+        indicator.classList.add('disconnected');
+      }
+    }
+
+    // ===== 채팅 상태 복원 =====
+    function restoreChatState() {
+      const savedState = sessionStorage.getItem('chatVisible');
+      if (savedState !== null) {
+        isChatVisible = savedState === 'true';
+        if (!isChatVisible) {
+          const chatSection = document.getElementById('chatSection');
+          const floatingBtn = document.getElementById('chatToggleFloating');
+          chatSection.classList.add('hidden');
+          floatingBtn.classList.add('show');
+        }
+      }
+    }
+
+    // ===== 키보드 단축키 =====
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch(e.key.toLowerCase()) {
+          case 't':
+            e.preventDefault();
+            toggleTheme();
+            break;
+          case 'v':
+            e.preventDefault();
+            toggleVideo();
+            break;
+          case 'm':
+            e.preventDefault();
+            toggleAudio();
+            break;
+          case 'n':
+            e.preventDefault();
+            switchToNext();
+            break;
+          case 'q':
+            e.preventDefault();
+            leaveRoom();
+            break;
+          case 'f':
+            e.preventDefault();
+            toggleVideoFit();
+            break;
+          case 'l':
+            e.preventDefault();
+            setLayout(currentLayout === 'vertical' ? 'horizontal' : 'vertical');
+            break;
+          case 'c':
+            e.preventDefault();
+            toggleChat();
+            break;
+        }
+      }
+    });
+
+    // ===== 초기화 =====
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      initLayout();
+      restoreChatState();
+      setupMobileKeyboardHandling();
+      if (!restoreSession()) {
+        document.getElementById('setupModal').classList.remove('hidden');
+      }
+    });
+
+    // ===== 페이지 이탈 방지 =====
+    window.addEventListener('beforeunload', (e) => {
+      if (roomId && peerId) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+  </script>
+</body>
+
+</html>
