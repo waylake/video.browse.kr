@@ -18,7 +18,7 @@
 
 ### 1. **실제 도메인으로 변경** (가장 중요!)
 
-현재 `yourwebsite.com`을 실제 도메인으로 변경:
+✅ **완료됨** - `yourwebsite.com`을 `video.browse.kr`로 변경 완료:
 
 **수정할 파일들:**
 - `public/index.html` (라인 14, 18, 25 등)
