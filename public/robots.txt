@@ -4,7 +4,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://yourwebsite.com/sitemap.xml
+Sitemap: https://video.browse.kr/sitemap.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 0

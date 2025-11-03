@@ -4,27 +4,61 @@ const socketIo = require('socket.io');
 const path = require('path');
 const compression = require('compression');
 
+// 환경 변수 설정
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const PORT = process.env.PORT || 3000;
+const DOMAIN = process.env.DOMAIN || 'localhost';
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
+const MAX_ROOMS = parseInt(process.env.MAX_ROOMS) || 1000;
+const ROOM_CLEANUP_INTERVAL = parseInt(process.env.ROOM_CLEANUP_INTERVAL) || 300000; // 5분
+const SOCKET_PING_TIMEOUT = parseInt(process.env.SOCKET_PING_TIMEOUT) || 60000;
+const SOCKET_PING_INTERVAL = parseInt(process.env.SOCKET_PING_INTERVAL) || 25000;
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: NODE_ENV === 'production' ? [BASE_URL] : CORS_ORIGIN,
+    methods: ["GET", "POST"],
+    credentials: true
   },
-  pingTimeout: 60000,
-  pingInterval: 25000
+  pingTimeout: SOCKET_PING_TIMEOUT,
+  pingInterval: SOCKET_PING_INTERVAL,
+  transports: ['websocket', 'polling']
 });
 
 // Gzip 압축 활성화
 app.use(compression());
 
-// 보안 헤더
+// 보안 헤더 (프로덕션 수준)
 app.use((req, res, next) => {
+  // 기본 보안 헤더
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // HTTPS 강제 (프로덕션에서)
+  if (NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  }
+  
+  // CSP (Content Security Policy)
+  res.setHeader('Content-Security-Policy', 
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://umami.browse.kr; " +
+    "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
+    "font-src 'self' https://cdnjs.cloudflare.com; " +
+    "img-src 'self' data: https:; " +
+    "connect-src 'self' wss: ws: https://umami.browse.kr; " +
+    "media-src 'self'; " +
+    "frame-src 'none';"
+  );
+  
+  // WebRTC 권한
   res.setHeader('Permissions-Policy', 'camera=*, microphone=*, display-capture=*');
+  
   next();
 });
 
@@ -72,7 +106,10 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     rooms: rooms.size,
-    uptime: process.uptime()
+    maxRooms: MAX_ROOMS,
+    uptime: process.uptime(),
+    environment: NODE_ENV,
+    domain: DOMAIN
   });
 });
 
@@ -82,13 +119,23 @@ io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
   socket.on('create-room', (callback) => {
+    // 방 개수 제한 체크
+    if (rooms.size >= MAX_ROOMS) {
+      callback({ error: '서버가 가득 찼습니다. 잠시 후 다시 시도해주세요.' });
+      return;
+    }
+
     const roomId = generateRoomId();
-    rooms.set(roomId, { host: socket.id, guest: null });
+    rooms.set(roomId, { 
+      host: socket.id, 
+      guest: null, 
+      createdAt: Date.now() 
+    });
     socket.join(roomId);
     socket.roomId = roomId;
     socket.isHost = true;
     callback({ roomId, isHost: true });
-    console.log(`Room created: ${roomId}`);
+    console.log(`Room created: ${roomId} (Total rooms: ${rooms.size})`);
   });
 
   socket.on('join-room', (roomId, callback) => {
@@ -126,13 +173,23 @@ io.on('connection', (socket) => {
 
     // 참가 가능한 방이 없으면 새 방 생성
     if (!availableRoomId) {
+      // 방 개수 제한 체크
+      if (rooms.size >= MAX_ROOMS) {
+        callback({ error: '서버가 가득 찼습니다. 잠시 후 다시 시도해주세요.' });
+        return;
+      }
+
       const newRoomId = generateRoomId();
-      rooms.set(newRoomId, { host: socket.id, guest: null });
+      rooms.set(newRoomId, { 
+        host: socket.id, 
+        guest: null, 
+        createdAt: Date.now() 
+      });
       socket.join(newRoomId);
       socket.roomId = newRoomId;
       socket.isHost = true;
       callback({ success: true, roomId: newRoomId, isHost: true, peerId: null, created: true });
-      console.log(`No available rooms. User ${socket.id} created new room: ${newRoomId}`);
+      console.log(`No available rooms. User ${socket.id} created new room: ${newRoomId} (Total: ${rooms.size})`);
       return;
     }
 
@@ -309,18 +366,63 @@ io.on('connection', (socket) => {
 // 주기적으로 빈 방 정리 (메모리 최적화)
 setInterval(() => {
   const now = Date.now();
+  let deletedCount = 0;
+  
   for (const [roomId, room] of rooms.entries()) {
-    if (!room.host && !room.guest) {
+    // 빈 방이거나 1시간 이상 된 방 삭제
+    const isOldRoom = room.createdAt && (now - room.createdAt) > 3600000; // 1시간
+    const isEmptyRoom = !room.host && !room.guest;
+    
+    if (isEmptyRoom || isOldRoom) {
       rooms.delete(roomId);
+      deletedCount++;
     }
   }
-}, 5 * 60 * 1000); // 5분마다 실행
+  
+  if (deletedCount > 0) {
+    console.log(`🧹 Cleaned up ${deletedCount} rooms. Current rooms: ${rooms.size}`);
+  }
+}, ROOM_CLEANUP_INTERVAL);
 
 function generateRoomId() {
   return Math.random().toString(36).substring(2, 9).toUpperCase();
 }
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// 글로벌 에러 핸들러
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
 });
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+// 서버 시작
+server.listen(PORT, () => {
+  console.log('='.repeat(50));
+  console.log(`🚀 Video.browse.kr Server Started`);
+  console.log(`📊 Environment: ${NODE_ENV}`);
+  console.log(`📡 Port: ${PORT}`);
+  console.log(`🌐 URL: ${BASE_URL}`);
+  console.log(`🏠 Max Rooms: ${MAX_ROOMS}`);
+  console.log(`🧹 Cleanup Interval: ${ROOM_CLEANUP_INTERVAL / 1000}s`);
+  console.log('='.repeat(50));
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated');
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated');
+  });
+});
+
